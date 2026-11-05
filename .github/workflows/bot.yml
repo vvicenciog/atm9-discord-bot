@@ -1,0 +1,58 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Workflow: Ejecuta el bot de Discord
+# 
+# ESTRATEGIA ANTI-BAN:
+# 1. Se ejecuta con cron cada 5 horas (NO 24/7 continuo)
+#    → GitHub permite hasta 6 horas por job, y ~2000 min/mes gratis.
+#    → 5h × ~4 ejecuciones/día × 30 días = ~600 min/mes (bien dentro del límite)
+# 2. Tiene un timeout de 350 minutos (~5.8 horas) para no exceder el máximo
+# 3. Usa un workflow separado (keep-alive) que hace un commit trivial
+#    cada 50 días para evitar que GitHub desactive el cron por inactividad
+# 4. NO usa bucles infinitos ni workarounds sospechosos
+# ──────────────────────────────────────────────────────────────────────────────
+
+name: "🤖 Discord Bot Runner"
+
+on:
+  # Se dispara automáticamente cada 5 horas
+  schedule:
+    - cron: "0 */5 * * *"   # Cada 5 horas: 00:00, 05:00, 10:00, 15:00, 20:00 UTC
+
+  # Permite lanzarlo manualmente desde la UI de GitHub
+  workflow_dispatch:
+
+# Solo una instancia a la vez (cancela la anterior si se solapa)
+concurrency:
+  group: discord-bot
+  cancel-in-progress: true
+
+jobs:
+  run-bot:
+    name: "Ejecutar Bot"
+    runs-on: ubuntu-latest
+    timeout-minutes: 350   # ~5.8 horas, antes del límite de 6h de GitHub
+
+    steps:
+      - name: 📥 Checkout del código
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: 📦 Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: 🚀 Ejecutar Bot
+        env:
+          DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          EC2_INSTANCE_ID: ${{ secrets.EC2_INSTANCE_ID }}
+          ALLOWED_ROLE_ID: ${{ secrets.ALLOWED_ROLE_ID }}
+        run: |
+          echo "🤖 Iniciando bot a las $(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          python bot.py

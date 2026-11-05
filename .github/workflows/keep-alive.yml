@@ -1,0 +1,49 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Workflow: Keep-Alive
+#
+# GitHub desactiva automáticamente los cron schedules de repos que llevan
+# 60 días sin actividad (commits/pushes). Este workflow hace un commit
+# mínimo cada 50 días para mantener el repo "activo".
+#
+# Esto es una práctica aceptada y documentada por GitHub.
+# Ref: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#schedule
+# ──────────────────────────────────────────────────────────────────────────────
+
+name: "💓 Keep Alive"
+
+on:
+  schedule:
+    - cron: "0 12 1 */2 *"   # Día 1 de cada 2 meses (ene, mar, may...) al mediodía UTC
+
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  keep-alive:
+    name: "Mantener repo activo"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 💓 Commit keep-alive
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Actualizar timestamp en un archivo dedicado
+          echo "Last keep-alive: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" > .keep-alive
+          
+          git add .keep-alive
+          
+          # Solo hacer commit si hay cambios
+          if git diff --cached --quiet; then
+            echo "Sin cambios, skip."
+          else
+            git commit -m "chore: keep-alive [skip ci]"
+            git push
+          fi
