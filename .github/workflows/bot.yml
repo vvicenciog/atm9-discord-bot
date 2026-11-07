@@ -18,6 +18,11 @@ on:
   schedule:
     - cron: "0 */5 * * *"   # Cada 5 horas: 00:00, 05:00, 10:00, 15:00, 20:00 UTC
 
+  # Se ejecuta automáticamente al hacer push a main
+  push:
+    branches:
+      - main
+
   # Permite lanzarlo manualmente desde la UI de GitHub
   workflow_dispatch:
 

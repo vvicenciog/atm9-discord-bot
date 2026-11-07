@@ -23,6 +23,7 @@ AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 EC2_INSTANCE_ID = os.getenv("EC2_INSTANCE_ID")
 ALLOWED_ROLE_ID = os.getenv("ALLOWED_ROLE_ID")  # Opcional
 ATM9_IMAGE_URL = "https://i.imgur.com/cn0OGDE.png"
+JB_THE_VOICE_IMAGE_URL = "https://github.com/vvicenciog/images/blob/main/JB_THE_VOICE.jpeg?raw=true"
 
 # ─── Validación ──────────────────────────────────────────────────────────────
 if not DISCORD_TOKEN:
@@ -296,6 +297,8 @@ async def cmd_ayuda(ctx: commands.Context):
             "`!apagar` · `!stop` · `!off`\n\n"
             "**📊 Ver el estado:**\n"
             "`!estado` · `!status` · `!info`\n\n"
+            "**🎤 JB THE VOICE:**\n"
+            "`!jbthevoice` · `!jb` · `!thevoice`\n\n"
             "**📖 Ver esta ayuda:**\n"
             "`!ayuda` · `!help` · `!comandos`\n\n"
             "─────────────────────────\n"
@@ -304,6 +307,17 @@ async def cmd_ayuda(ctx: commands.Context):
             f"🌎 Región: `{AWS_REGION}`"
         ),
         discord.Color.blue(),
+    ))
+
+
+@bot.command(name="jbthevoice", aliases=["jb", "thevoice"])
+async def cmd_jbthevoice(ctx: commands.Context):
+    """🎤 Muestra la imagen de JB THE VOICE"""
+    await ctx.reply(embed=embed(
+        "🎤 JB THE VOICE",
+        "🎙️ ¡Aquí está JB THE VOICE!",
+        discord.Color.purple(),
+        image_url=JB_THE_VOICE_IMAGE_URL,
     ))
 
 
